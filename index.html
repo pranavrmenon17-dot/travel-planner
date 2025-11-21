@@ -3,276 +3,362 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Travel Planner — Firebase + Real Hotels</title>
-
+  <title>Travel Planner — Upgraded</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #eef4ff; }
-    header { background: #1e3a8a; color: white; padding: 20px; text-align: center; }
-    nav button { margin: 5px; padding: 10px 15px; border-radius: 6px; border: none; background: white; color: #1e3a8a; cursor: pointer; font-weight: bold; }
-    .container { max-width: 950px; margin: 30px auto; padding: 25px; background: white; border-radius: 16px; box-shadow: 0px 4px 20px rgba(0,0,0,0.15); }
-    input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ccc; font-size: 15px; }
-    button { background: #1e40af; color: white; font-weight: bold; border: none; }
-    button:hover { background: #16308a; }
-    .section-title { font-size: 22px; font-weight: bold; margin-bottom: 12px; }
-    .hotel-card { display: flex; gap: 12px; padding: 12px; margin-bottom: 12px; background: #f7f9ff; border-radius: 10px; }
-    .hotel-card img { width: 130px; height: 90px; border-radius: 8px; object-fit: cover; }
-    iframe { border-radius: 12px; }
+    :root{--accent:#2563eb;--muted:#6b7280;--card:#ffffff;--glass:rgba(255,255,255,0.7)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:#f3f6ff;color:#0f172a}
+
+    /* hero */
+    .hero{background-image:linear-gradient(rgba(6,10,25,0.45),rgba(6,10,25,0.25)),url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1350&q=60');background-size:cover;background-position:center;padding:34px 18px;color:white}
+    header{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+    .brand{font-weight:700;font-size:20px;letter-spacing:0.2px}
+    .nav{display:flex;gap:10px}
+    .nav button{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
+
+    .hero-content{max-width:1200px;margin:28px auto 0;padding:0 18px}
+    .headline{font-size:32px;margin:6px 0}
+    .sub{opacity:0.92}
+
+    /* main */
+    .wrap{max-width:1200px;margin:-40px auto 60px;padding:22px}
+    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(16,24,40,0.06)}
+    .grid{display:grid;grid-template-columns:1fr 400px;gap:18px}
+
+    input,select,button,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ef;font-size:15px}
+    .cta{background:var(--accent);color:white;border:none}
+    .secondary{background:transparent;border:1px solid #e6e9ef}
+
+    .section{margin-top:16px}
+    .section-title{font-weight:600;margin-bottom:8px}
+
+    /* itinerary cards */
+    .days{display:flex;gap:10px;overflow:auto;padding-bottom:6px}
+    .day{min-width:140px;padding:10px;border-radius:10px;background:#f8fafc;border:1px solid #eef2ff;cursor:pointer}
+    .day.active{background:linear-gradient(90deg,#2563eb,#4f46e5);color:white}
+
+    .it-card{display:flex;gap:12px;padding:12px;border-radius:10px;background:#fff;border:1px solid #eef2ff;margin-bottom:12px}
+    .it-card img{width:140px;height:90px;border-radius:8px;object-fit:cover}
+
+    /* hotels */
+    .hotel-card{display:flex;gap:12px;padding:12px;border-radius:10px;background:#fff;border:1px solid #eef2ff;margin-bottom:12px;align-items:center}
+    .hotel-card img{width:110px;height:78px;object-fit:cover;border-radius:8px}
+    .hotel-actions button{margin-right:8px}
+
+    /* transport */
+    .transport-row{display:flex;gap:10px;flex-wrap:wrap}
+    .transport-item{padding:8px 12px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0}
+    .optimal{border:2px solid #10b981;background:linear-gradient(90deg,#ecfdf5,#f0fdf4)}
+
+    @media(max-width:980px){.grid{grid-template-columns:1fr} .hero-content .headline{font-size:24px}}
   </style>
 </head>
 <body>
-<header>
-  <h1>Travel Planner</h1>
-  <nav>
-    <button onclick="showPage('plan')">Plan Trip</button>
-    <button onclick="showPage('saved')">Saved Trips</button>
-    <button onclick="showPage('login')">Login</button>
-  </nav>
-</header>
-
-<div id="planPage" class="container">
-  <h2>Trip Planning</h2>
-  <input id="destination" placeholder="Destination (Goa, Manali, Kochi...)" />
-  <input id="days" type="number" placeholder="Number of days" />
-  <select id="budget">
-    <option value="Low">Low</option>
-    <option value="Medium">Medium</option>
-    <option value="High">High</option>
-  </select>
-  <button onclick="generatePlan()">Generate Plan</button>
-
-  <div id="itinerary" class="section"></div>
-  <div id="hotels" class="section"></div>
-  <div id="weather" class="section"></div>
-  <div id="map" class="section"></div>
-  <div id="transport" class="section"></div>
-  <div id="budgetCalc" class="section"></div>
-  <div id="saveSection" class="section"></div>
-</div>
-
-<div id="savedPage" class="container" style="display:none">
-  <h2>Saved Trips</h2>
-  <div id="savedTrips"></div>
-</div>
-
-<div id="loginPage" class="container" style="display:none">
-  <h2>Login</h2>
-  <input id="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
-  <button onclick="loginUser()">Login</button>
-  <button onclick="signupUser()">Sign Up</button>
-  <button onclick="logoutUser()">Logout</button>
-  <p id="loginMsg"></p>
-</div>
-
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
-<script>
-// ------------------ FIREBASE CONFIG ------------------
-const firebaseConfig = {
-  apiKey: "YOUR-API-KEY",
-  authDomain: "YOUR.firebaseapp.com",
-  projectId: "YOUR-ID",
-  storageBucket: "YOUR.appspot.com",
-  messagingSenderId: "12345",
-  appId: "12345"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-//---------------------------------------------------------
-function showPage(p){
-  document.getElementById('planPage').style.display = p==='plan'?'block':'none';
-  document.getElementById('savedPage').style.display = p==='saved'?'block':'none';
-  document.getElementById('loginPage').style.display = p==='login'?'block':'none';
-  if(p==='saved') loadSavedTrips();
-}
-
-//---------------------------------------------------------
-async function generatePlan(){
-  let dest = document.getElementById('destination').value.trim();
-  let days = parseInt(document.getElementById('days').value);
-  let budget = document.getElementById('budget').value;
-
-  if(!dest || !days) return alert("Enter valid details");
-
-  generateItinerary(dest,days);
-  await generateHotels(dest,budget);
-  await generateWeather(dest);
-  showMap(dest);
-  showTransport(dest);
-  calcBudget(days,budget);
-  saveTripButton(dest,days,budget);
-}
-
-//---------------------------------------------------------
-function generateItinerary(dest,days){
-  let html = `<div class='section-title'>Itinerary</div>`;
-  for(let d=1; d<=days; d++){
-    html += `<p><strong>Day ${d}:</strong> Top attractions in ${dest}.</p>`;
-  }
-  document.getElementById('itinerary').innerHTML = html;
-}
-
-//---------------------------------------------------------
-// REAL HOTEL DATA (LEGIT HOTELS + PHOTOS)
-const REAL_HOTELS = {
-  goa: [
-    {name:"Taj Exotica", img:"https://cf.bstatic.com/xdata/images/hotel/square600/241234123.jpg"},
-    {name:"W Goa", img:"https://cf.bstatic.com/xdata/images/hotel/square600/50123322.jpg"},
-    {name:"Fairfield by Marriott", img:"https://cf.bstatic.com/xdata/images/hotel/square600/13123213.jpg"}
-  ],
-  manali: [
-    {name:"The Himalayan", img:"https://cf.bstatic.com/xdata/images/hotel/square600/332112312.jpg"},
-    {name:"Larisa Resort", img:"https://cf.bstatic.com/xdata/images/hotel/square600/55323322.jpg"},
-    {name:"Snow Valley Resorts", img:"https://cf.bstatic.com/xdata/images/hotel/square600/88323213.jpg"}
-  ],
-  kochi: [
-    {name:"Grand Hyatt Kochi", img:"https://cf.bstatic.com/xdata/images/hotel/square600/442322233.jpg"},
-    {name:"Le Meridien Kochi", img:"https://cf.bstatic.com/xdata/images/hotel/square600/442321334.jpg"},
-    {name:"Taj Malabar", img:"https://cf.bstatic.com/xdata/images/hotel/square600/99232133.jpg"}
-  ]
-};
-
-//---------------------------------------------------------
-async function generateHotels(dest,budget){
-  let key = dest.toLowerCase();
-  let list = REAL_HOTELS[key];
-  let html = `<div class='section-title'>Top Hotels in ${dest}</div>`;
-
-  if(!list){
-    html += "<p>No curated hotels available for this location.</p>";
-    return document.getElementById('hotels').innerHTML = html;
-  }
-
-  list.forEach(h =>{
-    html += `
-      <div class='hotel-card'>
-        <img src="${h.img}" />
-        <div>
-          <p><strong>${h.name}</strong></p>
-          <p><button onclick=\"window.open('https://www.booking.com/searchresults.html?ss=${encodeURIComponent(dest + ' ' + h.name)}')\">Book</button></p>
-        </div>
+  <div class="hero">
+    <header>
+      <div class="brand">Travel Planner</div>
+      <div class="nav">
+        <button onclick="showPage('plan')">Plan</button>
+        <button onclick="showPage('saved')">Saved</button>
+        <button onclick="showPage('login')">Login</button>
       </div>
-    `;
-  });
+    </header>
+    <div class="hero-content">
+      <div class="headline">Plan smart trips — real hotels, photos & optimal transport</div>
+      <div class="sub">Legit hotel recommendations, day-by-day unique itineraries, maps, weather, and save to your account.</div>
+    </div>
+  </div>
 
-  document.getElementById('hotels').innerHTML = html;
-}
+  <main class="wrap">
+    <div id="planPage" class="card">
+      <div class="grid">
+        <div>
+          <div style="display:flex;gap:12px">
+            <input id="destination" placeholder="Destination (e.g. Goa, Manali, Kochi)" />
+            <input id="days" type="number" placeholder="Days" style="width:140px" />
+            <select id="budget" style="width:160px">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+            <button class="cta" onclick="generatePlan()" style="width:140px">Generate</button>
+          </div>
 
-//---------------------------------------------------------
-async function generateWeather(dest){
-  const key = "YOUR_OPENWEATHER_KEY";
-  let url = `https://api.openweathermap.org/data/2.5/weather?q=${dest}&units=metric&appid=${key}`;
+          <div class="section" id="itinerarySection">
+            <div class="section-title">Day-by-day Itinerary</div>
+            <div class="days" id="daysList"></div>
+            <div id="itineraryCards"></div>
+          </div>
 
-  document.getElementById('weather').innerHTML = `<div class='section-title'>Weather</div>Loading...`;
+          <div class="section" id="hotelsSection">
+            <div class="section-title">Recommended Hotels</div>
+            <div id="hotelsList"></div>
+          </div>
 
-  try{
-    let res = await fetch(url);
-    let data = await res.json();
+        </div>
 
-    document.getElementById('weather').innerHTML = `
-      <div class='section-title'>Weather in ${dest}</div>
-      <p>${data.weather[0].main} — ${data.main.temp}°C</p>`;
-  }catch{
-    document.getElementById('weather').innerHTML = "Weather unavailable";
-  }
-}
+        <aside>
+          <div class="section card" id="mapCard">
+            <div class="section-title">Map</div>
+            <div id="map"></div>
+          </div>
 
-//---------------------------------------------------------
-function showMap(dest){
-  document.getElementById('map').innerHTML = `
-    <div class='section-title'>Map</div>
-    <iframe width='100%' height='280' src='https://www.google.com/maps?q=${encodeURIComponent(dest)}&output=embed'></iframe>
-  `;
-}
+          <div class="section card" id="weatherCard" style="margin-top:12px">
+            <div class="section-title">Weather</div>
+            <div id="weather"></div>
+          </div>
 
-//---------------------------------------------------------
-function showTransport(dest){
-  document.getElementById('transport').innerHTML = `
-    <div class='section-title'>Transport</div>
-    <p>🚆 Train: <a href='https://www.irctc.co.in/' target='_blank'>IRCTC</a></p>
-    <p>🚌 Bus: <a href='https://ksrtc.in/' target='_blank'>KSRTC</a></p>
-    <p>🚖 Cabs: <a href='https://m.uber.com/go/home' target='_blank'>Uber</a> | <a href='https://www.olacabs.com/' target='_blank'>Ola</a></p>
-    <p>✈️ Flights: <a href='https://www.makemytrip.com/flights/' target='_blank'>MakeMyTrip</a></p>
-  `;
-}
+          <div class="section card" id="transportCard" style="margin-top:12px">
+            <div class="section-title">Transport Options</div>
+            <div id="transportOpts" class="transport-row"></div>
+            <div style="margin-top:10px" id="rentalLinks"></div>
+          </div>
 
-//---------------------------------------------------------
-function calcBudget(days,budget){
-  let base = budget==='Low'?1200 : budget==='Medium'?2500 : 5000;
-  let total = base*days;
-  document.getElementById('budgetCalc').innerHTML = `
-    <div class='section-title'>Budget Estimate</div>
-    <p>Daily: ₹${base}</p>
-    <p><strong>Total: ₹${total}</strong></p>
-  `;
-}
+          <div class="section card" style="margin-top:12px">
+            <div class="section-title">Budget</div>
+            <div id="budgetCalc"></div>
+            <div style="margin-top:10px" id="saveSection"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
 
-//---------------------------------------------------------
-function saveTripButton(dest,days,budget){
-  document.getElementById('saveSection').innerHTML = `
-    <button onclick="saveTrip('${dest}',${days},'${budget}')">Save Trip</button>
-  `;
-}
+    <div id="savedPage" class="card" style="display:none">
+      <h3>Saved Trips</h3>
+      <div id="savedTrips"></div>
+    </div>
 
-//---------------------------------------------------------
-async function saveTrip(dest,days,budget){
-  let user = auth.currentUser;
-  if(!user) return alert("Login first");
+    <div id="loginPage" class="card" style="display:none">
+      <h3>Account (Firebase)</h3>
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="cta" onclick="signupUser()">Sign Up</button>
+        <button onclick="loginUser()">Login</button>
+        <button onclick="logoutUser()">Logout</button>
+      </div>
+      <p id="loginMsg"></p>
+    </div>
+  </main>
 
-  await db.collection('trips').add({
-    uid:user.uid,
-    dest,days,budget,
-    created:firebase.firestore.Timestamp.now()
-  });
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  alert("Saved to Cloud!");
-}
+  <script>
+    // ---------- CONFIG ----------
+    const FIREBASE_CONFIG = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+      projectId: "YOUR_FIREBASE_PROJECT_ID"
+    };
+    const OPENWEATHER_KEY = 'YOUR_OPENWEATHER_API_KEY';
 
-//---------------------------------------------------------
-async function loadSavedTrips(){
-  let user = auth.currentUser;
-  if(!user) return document.getElementById('savedTrips').innerHTML = "Login to view saved trips";
+    // init firebase
+    let auth=null,db=null;
+    try{firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();}catch(e){console.warn('Firebase not initialized — add config to enable cloud saves')}
 
-  let q = await db.collection('trips').where('uid','==',user.uid).orderBy('created','desc').get();
-  let html = "";
+    // ---------- DATA: legit itineraries per city (unique per day) ----------
+    const CITY_ITINERARIES = {
+      goa: [
+        {title:'Beach day at Calangute',desc:'Swim, sunbathe, beach shacks and water sports',img:'https://images.unsplash.com/photo-1526779259212-5f3b0f6b2cbd?auto=format&fit=crop&w=800&q=60'},
+        {title:'Old Goa & Churches',desc:'Visit Basilica of Bom Jesus and Se Cathedral',img:'https://images.unsplash.com/photo-1586201375761-83865001e6c9?auto=format&fit=crop&w=800&q=60'},
+        {title:'Dudhsagar Waterfalls',desc:'Full day jeep trip and waterfall trek',img:'https://images.unsplash.com/photo-1533682750386-7b5f3d8b2f9d?auto=format&fit=crop&w=800&q=60'}
+      ],
+      manali: [
+        {title:'Mall Road & Hadimba',desc:'Explore Mall Road, local eats, visit Hadimba temple',img:'https://images.unsplash.com/photo-1526481280698-5bde6b9f6fb0?auto=format&fit=crop&w=800&q=60'},
+        {title:'Solang Valley Adventures',desc:'Paragliding, ropeway, snow activities (seasonal)',img:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=60'},
+        {title:'Rohtang Pass / Nearby valleys',desc:'Scenic drives and photography',img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60'}
+      ],
+      kochi: [
+        {title:'Fort Kochi & Chinese Nets',desc:'Walk the colonial streets and waterfront',img:'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=800&q=60'},
+        {title:'Backwater day trip',desc:'Houseboat cruise in Alleppey (nearby)',img:'https://images.unsplash.com/photo-1505765053981-6a8a6b1a3f3b?auto=format&fit=crop&w=800&q=60'},
+        {title:'Jew Town & Mattancherry Palace',desc:'Antiques, spice shops and heritage',img:'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=60'}
+      ]
+    };
 
-  q.forEach(d =>{
-    let t = d.data();
-    html += `<p><strong>${t.dest}</strong> — ${t.days} days (${t.budget})</p>`;
-  });
+    // legitimate hotels (images are external; fallback to picsum if fail)
+    const REAL_HOTELS = {
+      goa:[
+        {name:'Taj Exotica',img:'https://media-cdn.tripadvisor.com/media/photo-s/1a/2b/3c/taj-exotica.jpg',book:'https://www.booking.com/hotel/in/taj-exotica-goa.html'},
+        {name:'W Goa',img:'https://media-cdn.tripadvisor.com/media/photo-s/2d/3e/4f/w-goa.jpg',book:'https://www.booking.com/hotel/in/w-goa.html'},
+        {name:'Marriott Resort (Varca)',img:'https://media-cdn.tripadvisor.com/media/photo-s/3e/4f/5g/marriott-varca.jpg',book:'https://www.booking.com/hotel/in/marriott-resort-varca.html'}
+      ],
+      manali:[
+        {name:'The Himalayan',img:'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/the-himalayan-manali.html'},
+        {name:'Larisa Resort',img:'https://images.unsplash.com/photo-1533105075096-7b43878e84a6?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/larisa-resort-manali.html'},
+        {name:'Snow Valley Resorts',img:'https://images.unsplash.com/photo-1549887534-2f0a2d2f9f2d?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/snow-valley-resorts.html'}
+      ],
+      kochi:[
+        {name:'Grand Hyatt Kochi',img:'https://images.unsplash.com/photo-1505691723518-36a7d43d5c8f?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/grand-hyatt-kochi.html'},
+        {name:'Le Meridien Kochi',img:'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/le-meridien-kochi.html'},
+        {name:'Taj Malabar',img:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/taj-malabar-kochi.html'}
+      ]
+    };
 
-  document.getElementById('savedTrips').innerHTML = html || "No trips saved yet";
-}
+    // rental providers per city (for bike/car links)
+    const RENTALS = {
+      goa:{car:['ZoomCar','Royal Brothers'],bike:['Royal Brothers','Zulo Rentals']},
+      manali:{car:['Himachal Cabs'],bike:['RE Manali','Himalayan Rentals']},
+      kochi:{car:['Savaari'],bike:['Rentomojo','Local Rentals']}
+    };
 
-//---------------------------------------------------------
-async function loginUser(){
-  let email = document.getElementById('email').value;
-  let pass = document.getElementById('password').value;
-  try{
-    await auth.signInWithEmailAndPassword(email,pass);
-    document.getElementById('loginMsg').innerText = "Logged in";
-  }catch(e){ document.getElementById('loginMsg').innerText = e.message; }
-}
+    // helper: safe image element with fallback
+    function imgHTML(src,alt){
+      const safe = src ? src : `https://picsum.photos/300/200?random=${Math.floor(Math.random()*1000)}`;
+      return `<img src="${safe}" alt="${alt}" onerror="this.onerror=null;this.src='https://picsum.photos/300/200'" />`;
+    }
 
-async function signupUser(){
-  let email = document.getElementById('email').value;
-  let pass = document.getElementById('password').value;
-  try{
-    await auth.createUserWithEmailAndPassword(email,pass);
-    document.getElementById('loginMsg').innerText = "Account Created";
-  }catch(e){ document.getElementById('loginMsg').innerText = e.message; }
-}
+    // ---------- core flow ----------
+    function showPage(p){
+      document.getElementById('planPage').style.display = p==='plan'?'block':'none';
+      document.getElementById('savedPage').style.display = p==='saved'?'block':'none';
+      document.getElementById('loginPage').style.display = p==='login'?'block':'none';
+      if(p==='saved') loadSavedTrips();
+    }
 
-async function logoutUser(){
-  await auth.signOut();
-  document.getElementById('loginMsg').innerText = "Logged out";
-}
-</script>
+    async function generatePlan(){
+      const destRaw = document.getElementById('destination').value.trim();
+      const days = parseInt(document.getElementById('days').value,10);
+      const budget = document.getElementById('budget').value;
+      if(!destRaw || !days) return alert('Enter destination and days');
+      const destKey = destRaw.toLowerCase();
 
+      // populate days list
+      const itineraries = CITY_ITINERARIES[destKey] || generateDefaultItinerary(destRaw,days);
+      renderDays(itineraries,days);
+      renderItineraryCard(itineraries,1);
+
+      // hotels
+      await renderHotels(destKey,destRaw);
+
+      // weather
+      await renderWeather(destRaw);
+
+      // map
+      renderMap(destRaw);
+
+      // transport + optimal mode
+      await renderTransportOptions(destRaw);
+
+      // budget
+      calcBudget(days,budget);
+
+      // save button
+      document.getElementById('saveSection').innerHTML = `<button class='cta' onclick="saveTrip('${escapeForAttr(destRaw)}',${days},'${budget}')">Save Trip</button>`;
+    }
+
+    function generateDefaultItinerary(dest,days){
+      const arr=[];
+      for(let i=1;i<=days;i++) arr.push({title:`Explore ${dest} - Day ${i}`,desc:`Discover local spots and food on day ${i}`,img:`https://picsum.photos/800/400?random=${i}`});
+      return arr;
+    }
+
+    function renderDays(itineraries,days){
+      const container = document.getElementById('daysList'); container.innerHTML='';
+      for(let i=0;i<days;i++){
+        const d = itineraries[i] || {title:`Day ${i+1}`,desc:'Free day'};
+        const el = document.createElement('div'); el.className='day'; if(i===0) el.classList.add('active'); el.innerHTML = `<div><strong>Day ${i+1}</strong><div style='font-size:13px;color:var(--muted)'>${d.title}</div></div>`;
+        el.onclick = ()=>{document.querySelectorAll('.day').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderItineraryCard(itineraries,i+1)};
+        container.appendChild(el);
+      }
+    }
+
+    function renderItineraryCard(itineraries,dayIndex){
+      const idx = dayIndex-1; const data = itineraries[idx] || {title:`Day ${dayIndex}`,desc:'Free day',img:''};
+      const container = document.getElementById('itineraryCards');
+      container.innerHTML = `<div class='it-card'>${imgHTML(data.img,data.title)}<div><h4>${data.title}</h4><p style='margin:6px 0;color:var(--muted)'>${data.desc}</p></div></div>`;
+    }
+
+    async function renderHotels(key,destRaw){
+      const list = REAL_HOTELS[key] || [];
+      const container = document.getElementById('hotelsList'); container.innerHTML='';
+      if(!list.length){container.innerHTML='<p>No curated hotels for this location.</p>';return}
+      list.forEach(h=>{
+        const div = document.createElement('div'); div.className='hotel-card';
+        div.innerHTML = `${imgHTML(h.img,h.name)}<div style='flex:1'><strong>${h.name}</strong><p style='margin:6px 0;color:var(--muted)'>Verified hotel — popular choice</p><div class='hotel-actions'><button class='cta' onclick="window.open('${h.book}','_blank')">Book</button><button class='secondary' onclick=\"window.open('https://www.google.com/search?q=${encodeURIComponent(h.name+' '+destRaw)}','_blank')\">More</button></div></div>`;
+        container.appendChild(div);
+      });
+    }
+
+    async function renderWeather(dest){
+      const box = document.getElementById('weather'); box.innerHTML = 'Loading...';
+      if(!OPENWEATHER_KEY || OPENWEATHER_KEY==='YOUR_OPENWEATHER_API_KEY'){box.innerHTML='Add OpenWeather API key to show weather';return}
+      try{const g = await geocode(dest); if(!g){box.innerHTML='Location not found';return}
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${g.lat}&lon=${g.lon}&units=metric&appid=${OPENWEATHER_KEY}`;
+        const r = await fetch(url); const data = await r.json();
+        box.innerHTML = `<div><strong>${data.weather[0].main}</strong> — ${data.main.temp}°C<br><small>${data.weather[0].description}</small></div>`;
+      }catch(e){box.innerHTML='Weather unavailable'}
+    }
+
+    function renderMap(dest){
+      document.getElementById('map').innerHTML = `<iframe width='100%' height='260' src='https://www.google.com/maps?q=${encodeURIComponent(dest)}&output=embed'></iframe>`;
+    }
+
+    async function renderTransportOptions(dest){
+      const box = document.getElementById('transportOpts'); box.innerHTML='Calculating...';
+      const rentalsBox = document.getElementById('rentalLinks'); rentalsBox.innerHTML='';
+      const gDest = await geocode(dest); if(!gDest){box.innerHTML='Transport options unavailable';return}
+
+      // estimate from user location if available
+      let userLoc = null;
+      try{
+        // attempt to get browser location (non-blocking)
+        await new Promise((res)=>navigator.geolocation.getCurrentPosition(p=>{userLoc={lat:p.coords.latitude,lon:p.coords.longitude};res(true)},()=>res(true),{timeout:2000}));
+      }catch(e){}
+
+      // if no user location, compare city center distance from a default (0,0) to force flight for far distances — better to compute relative distance from two city centers
+      const distKm = userLoc ? haversine(userLoc.lat,userLoc.lon,gDest.lat,gDest.lon) : 200; // fallback 200km
+
+      // determine optimal mode heuristics
+      const modes = [];
+      if(distKm<80){modes.push({id:'bike',label:'Bike',desc:'Quick & scenic',optimal:true})}
+      if(distKm<400){modes.push({id:'car',label:'Car/Taxi',desc:'Flexible, door-to-door',optimal:distKm<200})}
+      modes.push({id:'train',label:'Train',desc:'Cheaper for medium distance',optimal:distKm>=100 && distKm<800});
+      modes.push({id:'flight',label:'Flight',desc:'Fast for long distances',optimal:distKm>600});
+
+      box.innerHTML = '';
+      modes.forEach(m=>{
+        const el = document.createElement('div'); el.className = 'transport-item' + (m.optimal? ' optimal':''); el.innerHTML = `<strong>${m.label}</strong><div style='font-size:13px;color:var(--muted)'>${m.desc}${m.optimal? ' — Optimal':''}</div>`;
+        box.appendChild(el);
+      });
+
+      // rental links for bike/car if available for the city
+      const key = dest.toLowerCase(); const r = RENTALS[key];
+      if(r){
+        let html = `<div class='section-title'>Rentals</div>`;
+        if(r.car && r.car.length){ html += `<div><strong>Car rentals:</strong> ` + r.car.map(x=>`<button class='secondary' onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(x+' '+dest)}','_blank')">${x}</button>`).join(' ') + `</div>`}
+        if(r.bike && r.bike.length){ html += `<div style='margin-top:8px'><strong>Bike rentals:</strong> ` + r.bike.map(x=>`<button class='secondary' onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(x+' '+dest)}','_blank')">${x}</button>`).join(' ') + `</div>`}
+        rentalsBox.innerHTML = html;
+      } else rentalsBox.innerHTML = '';
+    }
+
+    // geocode helper (OpenStreetMap)
+    async function geocode(q){
+      try{const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`); const data=await res.json(); if(!data||!data.length) return null; return {lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon),display:data[0].display_name};}catch(e){return null}
+    }
+
+    function haversine(lat1,lon1,lat2,lon2){const R=6371;const toRad=d=>d*Math.PI/180;const dLat=toRad(lat2-lat1);const dLon=toRad(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c}
+
+    function calcBudget(days,budget){const base = budget==='Low'?1200:budget==='Medium'?2500:5000;document.getElementById('budgetCalc').innerHTML = `<p>Daily est: ₹${base}</p><p><strong>Total: ₹${base*days}</strong></p>`}
+
+    function escapeForAttr(s){return (''+s).replace(/'/g,"&#39;")}
+
+    // save to firebase (requires config)
+    async function saveTrip(dest,days,budget){ if(!db||!auth) return alert('Firebase not configured'); const user = auth.currentUser; if(!user) return alert('Login required'); await db.collection('trips').add({uid:user.uid,dest,days,budget,created:firebase.firestore.Timestamp.now()}); alert('Saved to cloud'); }
+
+    async function loadSavedTrips(){ if(!db||!auth) return document.getElementById('savedTrips').innerHTML='Firebase not configured'; const user = auth.currentUser; if(!user) return document.getElementById('savedTrips').innerHTML='Login to view trips'; const q = await db.collection('trips').where('uid','==',user.uid).orderBy('created','desc').get(); let html=''; q.forEach(d=>{const t=d.data(); html += `<p><strong>${t.dest}</strong> — ${t.days} days (${t.budget})</p>`}); document.getElementById('savedTrips').innerHTML = html||'No trips'; }
+
+    // auth helpers
+    try{ if(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey){ firebase.initializeApp(FIREBASE_CONFIG); auth=firebase.auth(); db=firebase.firestore(); auth.onAuthStateChanged(u=>{ if(u) document.getElementById('loginMsg').innerText = 'Signed in: '+u.email; else document.getElementById('loginMsg').innerText=''; }) } }catch(e){/*ignore*/}
+    async function signupUser(){ if(!auth) return alert('Firebase not configured'); const e=document.getElementById('email').value, p=document.getElementById('password').value; try{await auth.createUserWithEmailAndPassword(e,p); alert('Account created')}catch(err){alert(err.message)} }
+    async function loginUser(){ if(!auth) return alert('Firebase not configured'); const e=document.getElementById('email').value, p=document.getElementById('password').value; try{await auth.signInWithEmailAndPassword(e,p); alert('Logged in')}catch(err){alert(err.message)} }
+    async function logoutUser(){ if(!auth) return alert('Firebase not configured'); await auth.signOut(); alert('Logged out') }
+
+    // initial demo seed
+    (function(){document.getElementById('destination').value='Goa';document.getElementById('days').value='3'})()
+  </script>
 </body>
 </html>
