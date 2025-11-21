@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Planner</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #c3e5ff, #f3f8ff);
+        }
+        header {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: rgba(255,255,255,0.6);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            backdrop-filter: blur(12px);
+        }
+        input, select, button {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 12px;
+            border: 1px solid #bbb;
+            font-size: 16px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #1749b3;
+        }
+        .result, .hotel-box, .map-box, .budget-box, .save-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+        }
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;">
+            <h1>Travel Planner</h1>
+            <div>
+                <button onclick="showPage('plan')">Plan Trip</button>
+                <button onclick="showPage('saved')">Saved Trips</button>
+                <button onclick="showPage('login')">Login</button>
+            </div>
+        </nav>
+        <p style="text-align:center">Create Beautiful, Smart Trip Plans</p>
+    </header>
+
+    <div class="container" id="planPage">
+        <h2>Enter Trip Details</h2>
+        <input type="text" id="destination" placeholder="Destination (e.g. Goa, Manali)" />
+        <input type="number" id="days" placeholder="Number of days" />
+        <select id="budget">
+            <option value="Low">Low Budget</option>
+            <option value="Medium">Medium Budget</option>
+            <option value="High">High Budget</option>
+        </select>
+        <button onclick="generateFullPlan()">Generate Smart Plan</button>
+        <div id="itinerary"></div>
+        <div id="weather"></div>
+        <div id="hotels"></div>
+        <div id="map"></div>
+        <div id="budgetCalc"></div>
+        <div id="saveTrips"></div>
+    </div>
+
+    <!-- SAVED TRIPS PAGE -->
+    <div class="container" id="savedPage" style="display:none">
+        <h2>Saved Trips</h2>
+        <div id="savedTripsList"></div>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <div class="container" id="loginPage" style="display:none">
+        <h2>User Login</h2>
+        <input type="text" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
+        <button onclick="loginUser()">Login</button>
+        <p id="loginStatus"></p>
+    </div>
+        <div id="hotels" class="hotel-box" style="display:none"></div>
+        <div id="map" class="map-box" style="display:none"></div>
+        <div id="budgetCalc" class="budget-box" style="display:none"></div>
+        <div id="saveTrips" class="save-box" style="display:none"></div>
+    </div>
+
+    <script>
+        function generateFullPlan() {
+            const dest = document.getElementById('destination').value;
+            const days = document.getElementById('days').value;
+            const budget = document.getElementById('budget').value;
+
+            if (!dest || !days) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            generateItinerary(dest, days, budget);
+            suggestHotels(dest, budget);
+            showMap(dest);
+            calculateBudget(days, budget);
+            saveTripOption(dest, days, budget);
+        }
+
+        function generateItinerary(dest, days, budget) {
+            let output = `<div class='section-title'>Your Itinerary</div>`;
+            output += `<p><strong>Destination:</strong> ${dest}</p>`;
+            output += `<p><strong>Days:</strong> ${days}</p>`;
+            output += `<p><strong>Budget:</strong> ${budget}</p>`;
+            output += `<h4>Day-wise plan:</h4>`;
+
+            for (let i = 1; i <= days; i++) {
+                output += `<p>Day ${i}: Explore attractions, visit cafes, relax at local hotspots.</p>`;
+            }
+
+            const box = document.getElementById('itinerary');
+            box.style.display = "block";
+            box.innerHTML = output;
+        }
+
+        function suggestHotels(dest, budget) {
+            const hotels = {
+                Low: ["Budget Inn", "Comfort Lodge", "StayEasy Rooms"],
+                Medium: ["Palm Retreat", "BlueWave Hotel", "Hilltop Residency"],
+                High: ["Royal Grand Resort", "Luxury Palace Hotel", "Ocean Bliss Spa Resort"]
+            };
+
+            let html = `<div class='section-title'>Recommended Hotels</div>`;
+            hotels[budget].forEach(h => {
+                html += `<p>🏨 ${h}</p>`;
+            });
+
+            const box = document.getElementById('hotels');
+            box.style.display = "block";
+            box.innerHTML = html;
+        }
+
+        function showMap(dest) {
+            const mapHTML = `
+                <div class='section-title'>Map Preview</div>
+                <p>Showing location for: <strong>${dest}</strong></p>
+                <iframe width="100%" height="300" style="border-radius:12px" 
+                    src="https://www.google.com/maps?q=${encodeURIComponent(dest)}&output=embed"></iframe>
+            `;
+            const box = document.getElementById('map');
+            box.style.display = "block";
+            box.innerHTML = mapHTML;
+        }
+
+        function calculateBudget(days, budget) {
+            const daily = budget === 'Low' ? 1200 : budget === 'Medium' ? 2500 : 5000;
+            const total = daily * days;
+
+            const html = `
+                <div class='section-title'>Budget Calculator</div>
+                <p>Daily estimated cost: ₹${daily}</p>
+                <p>Total estimated cost for ${days} days: <strong>₹${total}</strong></p>
+            `;
+
+            const box = document.getElementById('budgetCalc');
+            box.style.display = "block";
+            box.innerHTML = html;
+        }
+
+        function saveTripOption(dest, days, budget) {
+            const html = `
+                <div class='section-title'>Save Trip</div>
+                <p>Your trip details can be saved to local storage.</p>
+                <button onclick="saveTrip('${dest}', '${days}', '${budget}')">Save Trip</button>
+            `;
+
+            const box = document.getElementById('saveTrips');
+            box.style.display = "block";
+            box.innerHTML = html;
+        }
+
+        function saveTrip(dest, days, budget) {
+            const trip = { dest, days, budget, date: new Date().toLocaleString() };
+            let saved = JSON.parse(localStorage.getItem("savedTrips") || "[]");
+            saved.push(trip);
+            localStorage.setItem("savedTrips", JSON.stringify(saved));
+            alert("Trip saved successfully!");
+        }
+    function showPage(page){
+            document.getElementById('planPage').style.display = page==='plan'?'block':'none';
+            document.getElementById('savedPage').style.display = page==='saved'?'block':'none';
+            document.getElementById('loginPage').style.display = page==='login'?'block':'none';
+            if(page==='saved') loadSavedTrips();
+        }
+
+        function loginUser(){
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if(email && password){
+                document.getElementById('loginStatus').innerHTML = "Logged in (demo only)";
+            } else {
+                document.getElementById('loginStatus').innerHTML = "Enter valid details";
+            }
+        }
+
+        async function fetchWeather(dest){
+            const weatherBox = document.getElementById('weather');
+            weatherBox.innerHTML = `<p>Loading weather...</p>`;
+
+            // Dummy API text since real API keys can't be stored here
+            weatherBox.innerHTML = `<div class='section-title'>Weather Forecast</div><p>Weather data feature ready (API key needed)</p>`;
+        }
+
+        function loadSavedTrips(){
+            const saved = JSON.parse(localStorage.getItem('savedTrips') || '[]');
+            let html = "";
+            saved.forEach(t =>{
+                html += `<p><strong>${t.dest}</strong> - ${t.days} days (${t.budget}) <br>Saved on: ${t.date}</p>`;
+            });
+            document.getElementById('savedTripsList').innerHTML = html || "No trips saved yet";
+        }
+    </script>
+</body>
+</html>
