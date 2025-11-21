@@ -77,7 +77,7 @@
       </div>
 
       <div class="col">
-        <div id="weather" class="section slide-up"></div>
+        <div id="weather" class="section slide-up" style="display:none"></div>
         <div id="modeComparisonContainer" class="section slide-up" style="display:none"></div>
       </div>
     </div>
@@ -162,7 +162,7 @@
     function setHeroBackground(dest){
       const key = dest.toLowerCase();
       const info = CITY_DATA[key];
-      let url = info ? info.bg : `https://source.unsplash.com/1600x900/?${encodeURIComponent(dest)},travel`;
+      let url = info ? info.bg : `https://picsum.photos/800/600?random=1/1600x900/?${encodeURIComponent(dest)},travel`;
       document.getElementById('hero').style.backgroundImage = `url('${url}')`;
     }
 
@@ -180,7 +180,7 @@
 
       // itinerary
       let itineraryHTML = `<div class='section-title'>Itinerary for ${dest}</div>`;
-      let attractions = city ? city.attractions : [{name:`Explore ${dest}`,img:`https://source.unsplash.com/800x600/?${encodeURIComponent(dest)}`,cost:0}];
+      let attractions = city ? city.attractions : [{name:`Explore ${dest}`,img:`https://picsum.photos/800/600?random=1/800x600/?${encodeURIComponent(dest)}`,cost:0}];
       let totalAttractionCost = 0;
       for(let i=1;i<=days;i++){
         const spot = attractions[(i-1)%attractions.length];
@@ -194,7 +194,7 @@
       showHotels(dest,budget);
 
       // weather
-      await showWeather(dest);
+      /* removed weather */(dest);
 
       // map + transport + rentals
       showMapAndTransport(dest);
@@ -226,7 +226,7 @@
       // seeded hotels
       if(list.length){
         list.forEach(h=>{
-          html += `<div class='hotel'><h4>${h}</h4><img src='https://source.unsplash.com/800x500/?hotel,${encodeURIComponent(dest)}' alt='${h}' /><p>Check prices: <a href='https://www.booking.com/searchresults.html?ss=${encodeURIComponent(dest+' '+h)}' target='_blank'>Booking.com</a> | <a href='https://www.airbnb.co.in/s/${encodeURIComponent(dest)}/homes' target='_blank'>Airbnb</a></p></div>`;
+          html += `<div class='hotel'><h4>${h}</h4><img src='https://picsum.photos/800/600?random=1/800x500/?hotel,${encodeURIComponent(dest)}' alt='${h}' /><p><button onclick="window.open('https://www.booking.com/searchresults.html?ss=${encodeURIComponent(dest+' '+h)}','_blank')">Booking.com</button>/searchresults.html?ss=${encodeURIComponent(dest+' '+h)}' target='_blank'>Booking.com</a> | <button onclick="window.open('https://www.airbnb.co.in/s/${encodeURIComponent(dest)}/homes','_blank')">Airbnb</button></p></div>`;
         });
       } else {
         // fallback: link to searches
@@ -234,17 +234,14 @@
       }
 
       // also show aggregated links for best deals
-      html += `<p>Quick links: <a href='https://www.skyscanner.co.in/hotels' target='_blank'>Skyscanner Hotels</a> | <a href='https://www.trivago.in/' target='_blank'>Trivago</a></p>`;
+      html += `<p>Quick links: <button onclick="window.open('https://www.skyscanner.co.in/hotels','_blank')">Skyscanner Hotels</button> | <button onclick="window.open('https://www.trivago.in/','_blank')">Trivago</button></p>`;
       document.getElementById('hotels').innerHTML = html;
     }
 
     // Weather using OpenWeather (needs API key)
     async function showWeather(dest){
       const box = document.getElementById('weather');
-      box.innerHTML = `<div class='section-title'>Weather</div><p>Loading...</p>`;
-      if(!OPENWEATHER_KEY || OPENWEATHER_KEY==='YOUR_OPENWEATHER_API_KEY'){
-        box.innerHTML = `<div class='section-title'>Weather</div><p>Add an OpenWeather API key in the code to show real-time weather.</p>`;
-        return;
+      box.innerHTML='';return;
       }
       try{
         // geocode dest to get lat/lon
@@ -269,9 +266,9 @@
       html += `</ul>`;
 
       // Booking & cab links
-      html += `<p>Book flights: <a href='https://www.makemytrip.com/flights/' target='_blank'>MakeMyTrip</a> | <a href='https://www.skyscanner.co.in' target='_blank'>Skyscanner</a> | <a href='https://www.cleartrip.com/flights' target='_blank'>Cleartrip</a></p>`;
-      html += `<p>Local cabs: <a href='https://m.uber.com/go/home' target='_blank'>Uber</a> | <a href='https://www.olacabs.com/' target='_blank'>Ola</a> | <a href='https://www.rapido.bike/' target='_blank'>Rapido</a></p>`;
-      html += `<p>Trains & buses: <a href='https://www.irctc.co.in/' target='_blank'>IRCTC</a> | <a href='https://ksrtc.in/' target='_blank'>KSRTC</a></p>`;
+      html += `<p>Book flights: <button onclick="window.open('https://www.makemytrip.com/flights/','_blank')">MakeMyTrip</button> | <button onclick="window.open('https://www.skyscanner.co.in','_blank')">Skyscanner</button> | <button onclick="window.open('https://www.cleartrip.com/flights','_blank')">Cleartrip</button></p>`;
+      html += `<p>Local cabs: <button onclick="window.open('https://m.uber.com/go/home','_blank')">Uber</button> | <button onclick="window.open('https://www.olacabs.com/','_blank')">Ola</button> | <button onclick="window.open('https://www.rapido.bike/','_blank')">Rapido</button></p>`;
+      html += `<p>🚆🚌 Trains & Buses: <button onclick="window.open('https://www.irctc.co.in/','_blank')">IRCTC</button> | <button onclick="window.open('https://ksrtc.in/','_blank')">KSRTC</button></p>`;
 
       // distance calculator inputs
       html += `<div style='margin-top:10px'><input id='originInput' placeholder='Origin (city or address)' /><div style='display:flex;gap:8px;margin-top:8px'><button onclick='useMyLocation()'>Use my location</button><button onclick="calculateDistanceAndCompare('${escapeForAttr(dest)}')">Calculate & Compare</button></div><div id='distanceResult'></div></div>`;
@@ -309,7 +306,7 @@
       const cheapest = Object.keys(results).reduce((a,b)=>results[a].cost<results[b].cost?a:b);
       const fastest = Object.keys(results).reduce((a,b)=>results[a].timeH<results[b].timeH?a:b);
       let html = `<div class='section-title'>Mode Comparison</div><p>Distance: <strong>${distKm.toFixed(1)} km</strong> between <em>${originInfo.display_name}</em> and <em>${destInfo.display_name}</em></p><table><tr><th>Mode</th><th>Est. Time</th><th>Est. Cost (₹)</th><th>Book</th></tr>`;
-      Object.keys(results).forEach(mode=>{const r=results[mode];let book='';if(mode==='flight')book=`<a href='https://www.makemytrip.com/flights/' target='_blank'>Find flights</a>`;if(mode==='car')book=`<a href='https://m.uber.com/go/home' target='_blank'>Uber</a> | <a href='https://www.olacabs.com/' target='_blank'>Ola</a>`;if(mode==='bike')book=`<a href='https://www.rapido.bike/' target='_blank'>Rapido</a>`;if(mode==='train')book=`<a href='https://www.irctc.co.in/' target='_blank'>IRCTC</a>`;html += `<tr><td>${mode.charAt(0).toUpperCase()+mode.slice(1)} ${mode===cheapest?'<strong>(Cheapest)</strong>':''} ${mode===fastest?'<strong>(Fastest)</strong>':''}</td><td>${(r.timeH*60).toFixed(0)} min</td><td>₹${r.cost}</td><td>${book}</td></tr>`});
+      Object.keys(results).forEach(mode=>{const r=results[mode];let book='';if(mode==='flight')book=`<a href='https://www.makemytrip.com/flights/' target='_blank'>Find flights</a>`;if(mode==='car')book=`<button onclick="window.open('https://m.uber.com/go/home','_blank')">Uber</button> | <button onclick="window.open('https://www.olacabs.com/','_blank')">Ola</button>`;if(mode==='bike')book=`<button onclick="window.open('https://www.rapido.bike/','_blank')">Rapido</button>`;if(mode==='train')book=`<button onclick="window.open('https://www.irctc.co.in/','_blank')">IRCTC</button>`;html += `<tr><td>${mode.charAt(0).toUpperCase()+mode.slice(1)} ${mode===cheapest?'<strong>(Cheapest)</strong>':''} ${mode===fastest?'<strong>(Fastest)</strong>':''}</td><td>${(r.timeH*60).toFixed(0)} min</td><td>₹${r.cost}</td><td>${book}</td></tr>`});
       html += `</table>`;
       document.getElementById('distanceResult').innerHTML = `<p>From: ${originInfo.display_name}</p><p>To: ${destInfo.display_name}</p>`;
       document.getElementById('modeComparisonContainer').innerHTML = html;
