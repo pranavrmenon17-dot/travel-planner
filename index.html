@@ -194,7 +194,8 @@
       showHotels(dest,budget);
 
       // weather
-      /* removed weather */(dest);
+      // weather
+      await showWeather(dest);
 
       // map + transport + rentals
       showMapAndTransport(dest);
@@ -241,8 +242,24 @@
     // Weather using OpenWeather (needs API key)
     async function showWeather(dest){
       const box = document.getElementById('weather');
-      box.innerHTML='';return;
+      box.style.display='block';
+      box.innerHTML = `<div class='section-title'>Weather</div><p>Loading...</p>`;
+      
+      if(!OPENWEATHER_KEY || OPENWEATHER_KEY==='YOUR_OPENWEATHER_API_KEY'){
+        box.innerHTML = `<div class='section-title'>Weather</div><p>Add your OpenWeather API key to enable weather.</p>`;
+        return;
       }
+      try{
+        const g = await geocode(dest);
+        if(!g){box.innerHTML = `<div class='section-title'>Weather</div><p>Location not found.</p>`;return;}
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${g.lat}&lon=${g.lon}&units=metric&appid=${OPENWEATHER_KEY}`;
+        const r = await fetch(url);
+        const data = await r.json();
+        box.innerHTML = `<div class='section-title'>Weather in ${dest}</div>
+          <p>${data.weather[0].main} — ${data.main.temp}°C</p>
+          <p>Feels like: ${data.main.feels_like}°C</p>`;
+      }catch(e){box.innerHTML = `<div class='section-title'>Weather</div><p>Weather unavailable.</p>`;}
+    }
       try{
         // geocode dest to get lat/lon
         const g = await geocode(dest);
