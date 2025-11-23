@@ -3,54 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Travel Planner — Upgraded</title>
+  <title>Travel Planner — Upgraded (Firebase + Real Hotels)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root{--accent:#2563eb;--muted:#6b7280;--card:#ffffff;--glass:rgba(255,255,255,0.7)}
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:#f3f6ff;color:#0f172a}
-
-    /* hero */
     .hero{background-image:linear-gradient(rgba(6,10,25,0.45),rgba(6,10,25,0.25)),url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1350&q=60');background-size:cover;background-position:center;padding:34px 18px;color:white}
     header{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
     .brand{font-weight:700;font-size:20px;letter-spacing:0.2px}
     .nav{display:flex;gap:10px}
     .nav button{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
-
     .hero-content{max-width:1200px;margin:28px auto 0;padding:0 18px}
     .headline{font-size:32px;margin:6px 0}
     .sub{opacity:0.92}
-
-    /* main */
     .wrap{max-width:1200px;margin:-40px auto 60px;padding:22px}
     .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(16,24,40,0.06)}
     .grid{display:grid;grid-template-columns:1fr 400px;gap:18px}
-
     input,select,button,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ef;font-size:15px}
     .cta{background:var(--accent);color:white;border:none}
     .secondary{background:transparent;border:1px solid #e6e9ef}
-
     .section{margin-top:16px}
     .section-title{font-weight:600;margin-bottom:8px}
-
-    /* itinerary cards */
     .days{display:flex;gap:10px;overflow:auto;padding-bottom:6px}
     .day{min-width:140px;padding:10px;border-radius:10px;background:#f8fafc;border:1px solid #eef2ff;cursor:pointer}
     .day.active{background:linear-gradient(90deg,#2563eb,#4f46e5);color:white}
-
     .it-card{display:flex;gap:12px;padding:12px;border-radius:10px;background:#fff;border:1px solid #eef2ff;margin-bottom:12px}
     .it-card img{width:140px;height:90px;border-radius:8px;object-fit:cover}
-
-    /* hotels */
     .hotel-card{display:flex;gap:12px;padding:12px;border-radius:10px;background:#fff;border:1px solid #eef2ff;margin-bottom:12px;align-items:center}
     .hotel-card img{width:110px;height:78px;object-fit:cover;border-radius:8px}
     .hotel-actions button{margin-right:8px}
-
-    /* transport */
     .transport-row{display:flex;gap:10px;flex-wrap:wrap}
     .transport-item{padding:8px 12px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0}
     .optimal{border:2px solid #10b981;background:linear-gradient(90deg,#ecfdf5,#f0fdf4)}
-
     @media(max-width:980px){.grid{grid-template-columns:1fr} .hero-content .headline{font-size:24px}}
   </style>
 </head>
@@ -76,13 +61,14 @@
         <div>
           <div style="display:flex;gap:12px">
             <input id="destination" placeholder="Destination (e.g. Goa, Manali, Kochi)" />
-            <input id="days" type="number" placeholder="Days" style="width:140px" />
-            <select id="budget" style="width:160px">
+            <input id="days" type="number" placeholder="Days" style="width:120px" />
+            <input id="people" type="number" placeholder="People" style="width:120px" min="1" value="2" />
+            <select id="budget" style="width:140px">
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
-            <button class="cta" onclick="generatePlan()" style="width:140px">Generate</button>
+            <button class="cta" onclick="generatePlan()" style="width:120px">Generate</button>
           </div>
 
           <div class="section" id="itinerarySection">
@@ -113,6 +99,7 @@
             <div class="section-title">Transport Options</div>
             <div id="transportOpts" class="transport-row"></div>
             <div style="margin-top:10px" id="rentalLinks"></div>
+            <div style="margin-top:10px" id="bookingLinks"></div>
           </div>
 
           <div class="section card" style="margin-top:12px">
@@ -160,58 +147,58 @@
     let auth=null,db=null;
     try{firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();}catch(e){console.warn('Firebase not initialized — add config to enable cloud saves')}
 
-    // ---------- DATA: legit itineraries per city (unique per day) ----------
+    // ---------- DATA: itineraries & hotels with realistic booking links & approximate prices ----------
     const CITY_ITINERARIES = {
       goa: [
-        {title:'Beach day at Calangute',desc:'Swim, sunbathe, beach shacks and water sports',img:'https://images.unsplash.com/photo-1526779259212-5f3b0f6b2cbd?auto=format&fit=crop&w=800&q=60'},
-        {title:'Old Goa & Churches',desc:'Visit Basilica of Bom Jesus and Se Cathedral',img:'https://images.unsplash.com/photo-1586201375761-83865001e6c9?auto=format&fit=crop&w=800&q=60'},
-        {title:'Dudhsagar Waterfalls',desc:'Full day jeep trip and waterfall trek',img:'https://images.unsplash.com/photo-1533682750386-7b5f3d8b2f9d?auto=format&fit=crop&w=800&q=60'}
+        {title:'Calangute Beach day',desc:'Swim, sunbathing, local beach shacks and water sports.',img:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=60'},
+        {title:'Old Goa heritage tour',desc:'Visit Basilica of Bom Jesus, Se Cathedral and Portuguese-era churches',img:'https://images.unsplash.com/photo-1586201375761-83865001e6c9?auto=format&fit=crop&w=800&q=60'},
+        {title:'Dudhsagar Falls trip',desc:'Full-day jeep trip to Dudhsagar with nature trail',img:'https://images.unsplash.com/photo-1533682750386-7b5f3d8b2f9d?auto=format&fit=crop&w=800&q=60'}
       ],
       manali: [
-        {title:'Mall Road & Hadimba',desc:'Explore Mall Road, local eats, visit Hadimba temple',img:'https://images.unsplash.com/photo-1526481280698-5bde6b9f6fb0?auto=format&fit=crop&w=800&q=60'},
-        {title:'Solang Valley Adventures',desc:'Paragliding, ropeway, snow activities (seasonal)',img:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=60'},
-        {title:'Rohtang Pass / Nearby valleys',desc:'Scenic drives and photography',img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60'}
+        {title:'Mall Road & Hadimba',desc:'Explore Mall Road, try local cuisine, visit Hadimba Temple',img:'https://images.unsplash.com/photo-1526481280698-5bde6b9f6fb0?auto=format&fit=crop&w=800&q=60'},
+        {title:'Solang Valley adventure',desc:'Paragliding, ropeway, and snow activities (seasonal)',img:'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=60'},
+        {title:'Rohtang/photography drive',desc:'Scenic drives to nearby passes and valleys',img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60'}
       ],
       kochi: [
-        {title:'Fort Kochi & Chinese Nets',desc:'Walk the colonial streets and waterfront',img:'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=800&q=60'},
-        {title:'Backwater day trip',desc:'Houseboat cruise in Alleppey (nearby)',img:'https://images.unsplash.com/photo-1505765053981-6a8a6b1a3f3b?auto=format&fit=crop&w=800&q=60'},
-        {title:'Jew Town & Mattancherry Palace',desc:'Antiques, spice shops and heritage',img:'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=60'}
+        {title:'Fort Kochi & Chinese Nets',desc:'Walk colonial streets, art cafes and waterfront',img:'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=800&q=60'},
+        {title:'Backwater houseboat',desc:'Day cruise in Alleppey (nearby)',img:'https://images.unsplash.com/photo-1505765053981-6a8a6b1a3f3b?auto=format&fit=crop&w=800&q=60'},
+        {title:'Jew Town & Mattancherry',desc:'Spices, antiques and heritage',img:'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=60'}
       ]
     };
 
-    // legitimate hotels (images are external; fallback to picsum if fail)
+    // Hotels with official booking links and approximate price tiers (per room per night)
     const REAL_HOTELS = {
       goa:[
-        {name:'Taj Exotica',img:'https://media-cdn.tripadvisor.com/media/photo-s/1a/2b/3c/taj-exotica.jpg',book:'https://www.booking.com/hotel/in/taj-exotica-goa.html'},
-        {name:'W Goa',img:'https://media-cdn.tripadvisor.com/media/photo-s/2d/3e/4f/w-goa.jpg',book:'https://www.booking.com/hotel/in/w-goa.html'},
-        {name:'Marriott Resort (Varca)',img:'https://media-cdn.tripadvisor.com/media/photo-s/3e/4f/5g/marriott-varca.jpg',book:'https://www.booking.com/hotel/in/marriott-resort-varca.html'}
+        {name:'Taj Exotica (5★)',imgGallery:'https://www.tajhotels.com/en-in/hotels/taj-exotica-goa/gallery',book:'https://www.booking.com/hotel/in/taj-exotica-goa.html',prices:{Low:8000,Medium:15000,High:30000}},
+        {name:'W Goa (5★)',imgGallery:'https://www.marriott.com/en-us/hotels/goiwh-w-goa/photos/',book:'https://www.booking.com/hotel/in/w-retreat-spa-goa.html',prices:{Low:9000,Medium:16000,High:32000}},
+        {name:'Fairfield by Marriott (3★/4★)',imgGallery:'https://www.marriott.com/',book:'https://www.booking.com/hotel/in/fairfield-by-marriott-goa-anjuna.html',prices:{Low:3500,Medium:6000,High:10000}}
       ],
       manali:[
-        {name:'The Himalayan',img:'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/the-himalayan-manali.html'},
-        {name:'Larisa Resort',img:'https://images.unsplash.com/photo-1533105075096-7b43878e84a6?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/larisa-resort-manali.html'},
-        {name:'Snow Valley Resorts',img:'https://images.unsplash.com/photo-1549887534-2f0a2d2f9f2d?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/snow-valley-resorts.html'}
+        {name:'The Himalayan (4★)',imgGallery:'https://www.booking.com/hotel/in/the-himalayan.html',book:'https://www.booking.com/hotel/in/the-himalayan.html',prices:{Low:2500,Medium:5000,High:9000}},
+        {name:'Larisa Resort (4★)',imgGallery:'https://www.booking.com/hotel/in/la-ri-sa-resort.html',book:'https://www.booking.com/hotel/in/la-ri-sa-resort.html',prices:{Low:2000,Medium:4000,High:8000}},
+        {name:'Snow Valley Resorts (4★)',imgGallery:'https://www.booking.com/hotel/in/snow-valley-resorts.html',book:'https://www.booking.com/hotel/in/snow-valley-resorts.html',prices:{Low:2200,Medium:4200,High:8500}}
       ],
       kochi:[
-        {name:'Grand Hyatt Kochi',img:'https://images.unsplash.com/photo-1505691723518-36a7d43d5c8f?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/grand-hyatt-kochi.html'},
-        {name:'Le Meridien Kochi',img:'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/le-meridien-kochi.html'},
-        {name:'Taj Malabar',img:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=60',book:'https://www.booking.com/hotel/in/taj-malabar-kochi.html'}
+        {name:'Grand Hyatt Kochi (5★)',imgGallery:'https://www.hyatt.com/en-US/hotel/india/grand-hyatt-kochi-bolgatty/cokgh/gallery',book:'https://www.booking.com/hotel/in/grand-hyatt-kochi-bolgatty.html',prices:{Low:7000,Medium:12000,High:22000}},
+        {name:'Le Meridien Kochi (5★)',imgGallery:'https://www.marriott.com/en-us/hotels/cokmd-le-meridien-kochi/photos/',book:'https://www.booking.com/hotel/in/le-meridien-kochi.html',prices:{Low:6000,Medium:11000,High:20000}},
+        {name:'Taj Malabar (5★)',imgGallery:'https://www.tajhotels.com/en-in/hotels/taj-malabar-cochin/gallery',book:'https://www.booking.com/hotel/in/taj-malabar.html',prices:{Low:8000,Medium:14000,High:26000}}
       ]
     };
 
-    // rental providers per city (for bike/car links)
     const RENTALS = {
-      goa:{car:['ZoomCar','Royal Brothers'],bike:['Royal Brothers','Zulo Rentals']},
+      goa:{car:['Zoomcar','Royal Brothers'],bike:['Royal Brothers','Zulo Rentals']},
       manali:{car:['Himachal Cabs'],bike:['RE Manali','Himalayan Rentals']},
       kochi:{car:['Savaari'],bike:['Rentomojo','Local Rentals']}
     };
 
-    // helper: safe image element with fallback
-    function imgHTML(src,alt){
-      const safe = src ? src : `https://picsum.photos/300/200?random=${Math.floor(Math.random()*1000)}`;
-      return `<img src="${safe}" alt="${alt}" onerror="this.onerror=null;this.src='https://picsum.photos/300/200'" />`;
+    function hotelImageElement(h){
+      return `
+        <div style="width:110px;height:78px;border-radius:8px;overflow:hidden;background:#f3f4f6; display:flex;align-items:center;justify-content:center">
+          <img src="https://picsum.photos/seed/${encodeURIComponent(h.name)}/300/200" alt="${h.name}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://picsum.photos/300/200'">
+        </div>
+      `;
     }
 
-    // ---------- core flow ----------
     function showPage(p){
       document.getElementById('planPage').style.display = p==='plan'?'block':'none';
       document.getElementById('savedPage').style.display = p==='saved'?'block':'none';
@@ -222,143 +209,73 @@
     async function generatePlan(){
       const destRaw = document.getElementById('destination').value.trim();
       const days = parseInt(document.getElementById('days').value,10);
+      const people = parseInt(document.getElementById('people').value,10) || 1;
       const budget = document.getElementById('budget').value;
       if(!destRaw || !days) return alert('Enter destination and days');
-      const destKey = destRaw.toLowerCase();
+      const key = destRaw.toLowerCase();
 
-      // populate days list
-      const itineraries = CITY_ITINERARIES[destKey] || generateDefaultItinerary(destRaw,days);
+      const itineraries = CITY_ITINERARIES[key] || generateDefaultItinerary(destRaw,days);
       renderDays(itineraries,days);
       renderItineraryCard(itineraries,1);
 
-      // hotels
-      await renderHotels(destKey,destRaw);
+      await renderHotelsForPeople(key,destRaw,people,budget,days);
 
-      // weather
       await renderWeather(destRaw);
-
-      // map
       renderMap(destRaw);
-
-      // transport + optimal mode
       await renderTransportOptions(destRaw);
-
-      // budget
       calcBudget(days,budget);
 
-      // save button
       document.getElementById('saveSection').innerHTML = `<button class='cta' onclick="saveTrip('${escapeForAttr(destRaw)}',${days},'${budget}')">Save Trip</button>`;
     }
 
-    function generateDefaultItinerary(dest,days){
-      const arr=[];
-      for(let i=1;i<=days;i++) arr.push({title:`Explore ${dest} - Day ${i}`,desc:`Discover local spots and food on day ${i}`,img:`https://picsum.photos/800/400?random=${i}`});
-      return arr;
-    }
-
-    function renderDays(itineraries,days){
-      const container = document.getElementById('daysList'); container.innerHTML='';
-      for(let i=0;i<days;i++){
-        const d = itineraries[i] || {title:`Day ${i+1}`,desc:'Free day'};
-        const el = document.createElement('div'); el.className='day'; if(i===0) el.classList.add('active'); el.innerHTML = `<div><strong>Day ${i+1}</strong><div style='font-size:13px;color:var(--muted)'>${d.title}</div></div>`;
-        el.onclick = ()=>{document.querySelectorAll('.day').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderItineraryCard(itineraries,i+1)};
-        container.appendChild(el);
-      }
-    }
-
-    function renderItineraryCard(itineraries,dayIndex){
-      const idx = dayIndex-1; const data = itineraries[idx] || {title:`Day ${dayIndex}`,desc:'Free day',img:''};
-      const container = document.getElementById('itineraryCards');
-      container.innerHTML = `<div class='it-card'>${imgHTML(data.img,data.title)}<div><h4>${data.title}</h4><p style='margin:6px 0;color:var(--muted)'>${data.desc}</p></div></div>`;
-    }
-
-    async function renderHotels(key,destRaw){
+    async function renderHotelsForPeople(key,destRaw,people,budget,days){
       const list = REAL_HOTELS[key] || [];
       const container = document.getElementById('hotelsList'); container.innerHTML='';
       if(!list.length){container.innerHTML='<p>No curated hotels for this location.</p>';return}
-      list.forEach(h=>{
-        const div = document.createElement('div'); div.className='hotel-card';
-        div.innerHTML = `${imgHTML(h.img,h.name)}<div style='flex:1'><strong>${h.name}</strong><p style='margin:6px 0;color:var(--muted)'>Verified hotel — popular choice</p><div class='hotel-actions'><button class='cta' onclick="window.open('${h.book}','_blank')">Book</button><button class='secondary' onclick=\"window.open('https://www.google.com/search?q=${encodeURIComponent(h.name+' '+destRaw)}','_blank')\">More</button></div></div>`;
-        container.appendChild(div);
-      });
-    }
 
-    async function renderWeather(dest){
-      const box = document.getElementById('weather'); box.innerHTML = 'Loading...';
-      if(!OPENWEATHER_KEY || OPENWEATHER_KEY==='YOUR_OPENWEATHER_API_KEY'){box.innerHTML='Add OpenWeather API key to show weather';return}
-      try{const g = await geocode(dest); if(!g){box.innerHTML='Location not found';return}
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${g.lat}&lon=${g.lon}&units=metric&appid=${OPENWEATHER_KEY}`;
-        const r = await fetch(url); const data = await r.json();
-        box.innerHTML = `<div><strong>${data.weather[0].main}</strong> — ${data.main.temp}°C<br><small>${data.weather[0].description}</small></div>`;
-      }catch(e){box.innerHTML='Weather unavailable'}
-    }
+      const rooms = Math.ceil(people/2);
+      const entries = list.map(h=>{const perRoom = h.prices[budget];const total = perRoom * rooms * days;return {...h,perRoom,total};});
+      entries.sort((a,b)=>a.total-b.total);
 
-    function renderMap(dest){
-      document.getElementById('map').innerHTML = `<iframe width='100%' height='260' src='https://www.google.com/maps?q=${encodeURIComponent(dest)}&output=embed'></iframe>`;
-    }
-
-    async function renderTransportOptions(dest){
-      const box = document.getElementById('transportOpts'); box.innerHTML='Calculating...';
-      const rentalsBox = document.getElementById('rentalLinks'); rentalsBox.innerHTML='';
-      const gDest = await geocode(dest); if(!gDest){box.innerHTML='Transport options unavailable';return}
-
-      // estimate from user location if available
-      let userLoc = null;
-      try{
-        // attempt to get browser location (non-blocking)
-        await new Promise((res)=>navigator.geolocation.getCurrentPosition(p=>{userLoc={lat:p.coords.latitude,lon:p.coords.longitude};res(true)},()=>res(true),{timeout:2000}));
-      }catch(e){}
-
-      // if no user location, compare city center distance from a default (0,0) to force flight for far distances — better to compute relative distance from two city centers
-      const distKm = userLoc ? haversine(userLoc.lat,userLoc.lon,gDest.lat,gDest.lon) : 200; // fallback 200km
-
-      // determine optimal mode heuristics
-      const modes = [];
-      if(distKm<80){modes.push({id:'bike',label:'Bike',desc:'Quick & scenic',optimal:true})}
-      if(distKm<400){modes.push({id:'car',label:'Car/Taxi',desc:'Flexible, door-to-door',optimal:distKm<200})}
-      modes.push({id:'train',label:'Train',desc:'Cheaper for medium distance',optimal:distKm>=100 && distKm<800});
-      modes.push({id:'flight',label:'Flight',desc:'Fast for long distances',optimal:distKm>600});
-
-      box.innerHTML = '';
-      modes.forEach(m=>{
-        const el = document.createElement('div'); el.className = 'transport-item' + (m.optimal? ' optimal':''); el.innerHTML = `<strong>${m.label}</strong><div style='font-size:13px;color:var(--muted)'>${m.desc}${m.optimal? ' — Optimal':''}</div>`;
-        box.appendChild(el);
+      let html = `<div style='margin-bottom:10px'><strong>Rooms needed:</strong> ${rooms} | <strong>People:</strong> ${people} | <strong>Nights:</strong> ${days}</div>`;
+      entries.forEach(h=>{
+        html += `<div class='hotel-card'>${hotelImageElement(h)}<div style='flex:1'><strong>${h.name}</strong><p style='margin:6px 0;color:var(--muted)'>Price per room/night: ₹${h.perRoom.toLocaleString()}<br>Total: <strong>₹${h.total.toLocaleString()}</strong></p><div class='hotel-actions'><button class='cta' onclick="window.open('${h.book}','_blank')">Book (Booking.com)</button><button class='secondary' onclick=\"window.open('${h.imgGallery}','_blank')\">View Photos</button></div></div></div>`;
       });
 
-      // rental links for bike/car if available for the city
-      const key = dest.toLowerCase(); const r = RENTALS[key];
-      if(r){
-        let html = `<div class='section-title'>Rentals</div>`;
-        if(r.car && r.car.length){ html += `<div><strong>Car rentals:</strong> ` + r.car.map(x=>`<button class='secondary' onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(x+' '+dest)}','_blank')">${x}</button>`).join(' ') + `</div>`}
-        if(r.bike && r.bike.length){ html += `<div style='margin-top:8px'><strong>Bike rentals:</strong> ` + r.bike.map(x=>`<button class='secondary' onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(x+' '+dest)}','_blank')">${x}</button>`).join(' ') + `</div>`}
-        rentalsBox.innerHTML = html;
-      } else rentalsBox.innerHTML = '';
+      const cheapest = entries[0];
+      if(cheapest){
+        html += `<div style='margin-top:12px;padding:12px;border-radius:10px;background:#fafafb;border:1px solid #eef2ff'><strong>Price comparison for <em>${cheapest.name}</em> (per room/night)</strong><div style='display:flex;gap:8px;margin-top:8px'><div style='padding:8px;background:#fff;border-radius:8px'>Low: ₹${cheapest.prices ? (cheapest.prices.Low || 'N/A') : 'N/A'}</div><div style='padding:8px;background:#fff;border-radius:8px'>Medium: ₹${cheapest.prices ? (cheapest.prices.Medium || 'N/A') : 'N/A'}</div><div style='padding:8px;background:#fff;border-radius:8px'>High: ₹${cheapest.prices ? (cheapest.prices.High || 'N/A') : 'N/A'}</div></div></div>`;
+      }
+
+      container.innerHTML = html;
     }
 
-    // geocode helper (OpenStreetMap)
-    async function geocode(q){
-      try{const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`); const data=await res.json(); if(!data||!data.length) return null; return {lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon),display:data[0].display_name};}catch(e){return null}
-    }
+    function generateDefaultItinerary(dest,days){const arr=[];for(let i=1;i<=days;i++)arr.push({title:`Explore ${dest} - Day ${i}`,desc:`Discover local spots and food on day ${i}`,img:`https://picsum.photos/800/400?random=${i}`});return arr}
+    function renderDays(itineraries,days){const container=document.getElementById('daysList');container.innerHTML='';for(let i=0;i<days;i++){const d=itineraries[i]||{title:`Day ${i+1}`,desc:'Free day'};const el=document.createElement('div');el.className='day';if(i===0)el.classList.add('active');el.innerHTML=`<div><strong>Day ${i+1}</strong><div style='font-size:13px;color:var(--muted)'>${d.title}</div></div>`;el.onclick=()=>{document.querySelectorAll('.day').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderItineraryCard(itineraries,i+1)};container.appendChild(el)} }
+    function renderItineraryCard(itineraries,dayIndex){const idx=dayIndex-1;const data=itineraries[idx]||{title:`Day ${dayIndex}`,desc:'Free day',img:''};const container=document.getElementById('itineraryCards');container.innerHTML=`<div class='it-card'>${imgHTML(data.img,data.title)}<div style='padding-left:12px'><h4>${data.title}</h4><p style='margin:6px 0;color:var(--muted)'>${data.desc}</p></div></div>`}
+    function imgHTML(src,alt){const safe=src||`https://picsum.photos/seed/${encodeURIComponent(alt)}/800/400`;return `<img src="${safe}" alt="${alt}" style="width:100%;height:90px;object-fit:cover;border-radius:8px" onerror="this.onerror=null;this.src='https://picsum.photos/300/200'" />`}
 
+    async function renderWeather(dest){const box=document.getElementById('weather');box.innerHTML='Loading...';if(!OPENWEATHER_KEY||OPENWEATHER_KEY==='YOUR_OPENWEATHER_API_KEY'){box.innerHTML='Add OpenWeather API key to show weather';return}try{const g=await geocode(dest);if(!g){box.innerHTML='Location not found';return}const url=`https://api.openweathermap.org/data/2.5/weather?lat=${g.lat}&lon=${g.lon}&units=metric&appid=${OPENWEATHER_KEY}`;const r=await fetch(url);const data=await r.json();box.innerHTML=`<div><strong>${data.weather[0].main}</strong> — ${data.main.temp}°C<br><small>${data.weather[0].description}</small></div>`}catch(e){box.innerHTML='Weather unavailable'} }
+
+    function renderMap(dest){document.getElementById('map').innerHTML=`<iframe width='100%' height='240' src='https://www.google.com/maps?q=${encodeURIComponent(dest)}&output=embed'></iframe>`}
+
+    async function renderTransportOptions(dest){const box=document.getElementById('transportOpts');box.innerHTML='Calculating...';const rentalsBox=document.getElementById('rentalLinks');rentalsBox.innerHTML='';const bookingBox=document.getElementById('bookingLinks');bookingBox.innerHTML='';const gDest=await geocode(dest);if(!gDest){box.innerHTML='Transport options unavailable';return}
+      let userLoc=null;try{await new Promise((res)=>navigator.geolocation.getCurrentPosition(p=>{userLoc={lat:p.coords.latitude,lon:p.coords.longitude};res(true)},()=>res(true),{timeout:2000}));}catch(e){}
+      const distKm=userLoc?haversine(userLoc.lat,userLoc.lon,gDest.lat,gDest.lon):200;const modes=[];if(distKm<80)mode s.push({id:'bike',label:'Bike',desc:'Quick & scenic',optimal:true});if(distKm<400)modes.push({id:'car',label:'Car/Taxi',desc:'Flexible, door-to-door',optimal:distKm<200});modes.push({id:'train',label:'Train',desc:'Cheaper for medium distance',optimal:distKm>=100&&distKm<800});modes.push({id:'flight',label:'Flight',desc:'Fast for long distances',optimal:distKm>600});box.innerHTML='';modes.forEach(m=>{const el=document.createElement('div');el.className='transport-item'+(m.optimal?' optimal':'');el.innerHTML=`<strong>${m.label}</strong><div style='font-size:13px;color:var(--muted)'>${m.desc}${m.optimal?' — Optimal':''}</div>`;box.appendChild(el)});
+      const key=dest.toLowerCase();const r=RENTALS[key];if(r){let html=`<div class='section-title'>Rentals</div>`;if(r.car&&r.car.length)html+=`<div><strong>Car rentals:</strong> `+r.car.map(x=>`<button class='secondary' onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(x+' '+dest)}','_blank')">${x}</button>`).join(' ')+`</div>`;if(r.bike&&r.bike.length)html+=`<div style='margin-top:8px'><strong>Bike rentals:</strong> `+r.bike.map(x=>`<button class='secondary' onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(x+' '+dest)}','_blank')">${x}</button>`).join(' ')+`</div>`;rentalsBox.innerHTML=html}
+      bookingBox.innerHTML=`<div style='margin-top:8px'><strong>Book transport</strong><div style='margin-top:8px'><button class='secondary' onclick="window.open('https://www.irctc.co.in/','_blank')">IRCTC (Trains)</button> <button class='secondary' onclick=\"window.open('https://www.redbus.in/','_blank')\">redBus (Buses)</button> <button class='secondary' onclick=\"window.open('https://www.makemytrip.com/flights/','_blank')\">MakeMyTrip (Flights)</button></div></div>`}
+
+    async function geocode(q){try{const res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);const data=await res.json();if(!data||!data.length)return null;return{lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon),display:data[0].display_name}}catch(e){return null}}
     function haversine(lat1,lon1,lat2,lon2){const R=6371;const toRad=d=>d*Math.PI/180;const dLat=toRad(lat2-lat1);const dLon=toRad(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c}
-
-    function calcBudget(days,budget){const base = budget==='Low'?1200:budget==='Medium'?2500:5000;document.getElementById('budgetCalc').innerHTML = `<p>Daily est: ₹${base}</p><p><strong>Total: ₹${base*days}</strong></p>`}
-
-    function escapeForAttr(s){return (''+s).replace(/'/g,"&#39;")}
-
-    // save to firebase (requires config)
-    async function saveTrip(dest,days,budget){ if(!db||!auth) return alert('Firebase not configured'); const user = auth.currentUser; if(!user) return alert('Login required'); await db.collection('trips').add({uid:user.uid,dest,days,budget,created:firebase.firestore.Timestamp.now()}); alert('Saved to cloud'); }
-
-    async function loadSavedTrips(){ if(!db||!auth) return document.getElementById('savedTrips').innerHTML='Firebase not configured'; const user = auth.currentUser; if(!user) return document.getElementById('savedTrips').innerHTML='Login to view trips'; const q = await db.collection('trips').where('uid','==',user.uid).orderBy('created','desc').get(); let html=''; q.forEach(d=>{const t=d.data(); html += `<p><strong>${t.dest}</strong> — ${t.days} days (${t.budget})</p>`}); document.getElementById('savedTrips').innerHTML = html||'No trips'; }
-
-    // auth helpers
-    try{ if(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey){ firebase.initializeApp(FIREBASE_CONFIG); auth=firebase.auth(); db=firebase.firestore(); auth.onAuthStateChanged(u=>{ if(u) document.getElementById('loginMsg').innerText = 'Signed in: '+u.email; else document.getElementById('loginMsg').innerText=''; }) } }catch(e){/*ignore*/}
-    async function signupUser(){ if(!auth) return alert('Firebase not configured'); const e=document.getElementById('email').value, p=document.getElementById('password').value; try{await auth.createUserWithEmailAndPassword(e,p); alert('Account created')}catch(err){alert(err.message)} }
-    async function loginUser(){ if(!auth) return alert('Firebase not configured'); const e=document.getElementById('email').value, p=document.getElementById('password').value; try{await auth.signInWithEmailAndPassword(e,p); alert('Logged in')}catch(err){alert(err.message)} }
-    async function logoutUser(){ if(!auth) return alert('Firebase not configured'); await auth.signOut(); alert('Logged out') }
-
-    // initial demo seed
-    (function(){document.getElementById('destination').value='Goa';document.getElementById('days').value='3'})()
+    function calcBudget(days,budget){const base=budget==='Low'?1200:budget==='Medium'?2500:5000;document.getElementById('budgetCalc').innerHTML=`<p>Daily est: ₹${base}</p><p><strong>Total: ₹${base*days}</strong></p>`}
+    function escapeForAttr(s){return(''+s).replace(/'/g,"&#39;")}
+    async function saveTrip(dest,days,budget){if(!db||!auth)return alert('Firebase not configured');const user=auth.currentUser;if(!user)return alert('Login required');await db.collection('trips').add({uid:user.uid,dest,days,budget,created:firebase.firestore.Timestamp.now()});alert('Saved to cloud')}
+    async function loadSavedTrips(){if(!db||!auth)return document.getElementById('savedTrips').innerHTML='Firebase not configured';const user=auth.currentUser;if(!user)return document.getElementById('savedTrips').innerHTML='Login to view saved trips';const q=await db.collection('trips').where('uid','==',user.uid).orderBy('created','desc').get();let html='';q.forEach(d=>{const t=d.data();html+=`<p><strong>${t.dest}</strong> — ${t.days} days (${t.budget})</p>`});document.getElementById('savedTrips').innerHTML=html||'No trips'}
+    try{if(FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey){firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();auth.onAuthStateChanged(u=>{if(u)document.getElementById('loginMsg').innerText='Signed in: '+u.email;else document.getElementById('loginMsg').innerText='';})}}catch(e){}
+    async function signupUser(){if(!auth)return alert('Firebase not configured');const e=document.getElementById('email').value,p=document.getElementById('password').value;try{await auth.createUserWithEmailAndPassword(e,p);alert('Account created')}catch(err){alert(err.message)}}
+    async function loginUser(){if(!auth)return alert('Firebase not configured');const e=document.getElementById('email').value,p=document.getElementById('password').value;try{await auth.signInWithEmailAndPassword(e,p);alert('Logged in')}catch(err){alert(err.message)}}
+    async function logoutUser(){if(!auth)return alert('Firebase not configured');await auth.signOut();alert('Logged out')}
+    (function(){document.getElementById('destination').value='Goa';document.getElementById('days').value='3';document.getElementById('people').value='2'})()
   </script>
 </body>
 </html>
